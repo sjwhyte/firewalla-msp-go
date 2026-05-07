@@ -1,0 +1,12 @@
+{
+  "id": "mac:AA:BB:CC:DD:EE:FF",
+  "gid": "00000000-0000-0000-0000-000000000001",
+  "name": "My Updated Device",
+  "ip": "192.168.1.42",
+  "ipReserved": true,
+  "macVendor": "Apple, Inc.",
+  "online": true,
+  "lastSeen": 1714867200,
+  "totalDownload": 12345678,
+  "totalUpload": 234567
+}
