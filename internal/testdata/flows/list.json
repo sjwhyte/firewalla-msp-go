@@ -1,0 +1,40 @@
+{
+  "count": 2,
+  "results": [
+    {
+      "ts": 1714867200,
+      "status": "ok",
+      "direction": "outbound",
+      "box": {"id": "G1", "name": "Office"},
+      "device": {"id": "mac:AA:BB:CC:DD:EE:FF", "name": "iPhone"},
+      "network": {"id": "main", "name": "Main"},
+      "category": "social",
+      "domain": "example.com",
+      "region": "US",
+      "sport": 49152,
+      "dport": 443,
+      "download": 12345,
+      "upload": 678,
+      "total": 13023,
+      "protocol": "tcp"
+    },
+    {
+      "ts": 1714867260,
+      "status": "ok",
+      "direction": "inbound",
+      "box": {"id": "G1", "name": "Office"},
+      "device": {"id": "mac:AA:BB:CC:DD:EE:FF", "name": "iPhone"},
+      "network": {"id": "main", "name": "Main"},
+      "category": "video",
+      "domain": "youtube.com",
+      "region": "US",
+      "sport": 443,
+      "dport": 49160,
+      "download": 99999,
+      "upload": 100,
+      "total": 100099,
+      "protocol": "tcp"
+    }
+  ],
+  "next_cursor": ""
+}
