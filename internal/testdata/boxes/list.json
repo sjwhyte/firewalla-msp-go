@@ -1,0 +1,31 @@
+[
+  {
+    "gid": "00000000-0000-0000-0000-000000000001",
+    "name": "Office Box",
+    "model": "gold-plus",
+    "mode": "router",
+    "online": true,
+    "version": "1.978",
+    "publicIP": "203.0.113.10",
+    "location": "US",
+    "lastSeen": 1714867200,
+    "deviceCount": 42,
+    "ruleCount": 17,
+    "alarmCount": 3,
+    "group": {"id": 1, "name": "HQ"}
+  },
+  {
+    "gid": "00000000-0000-0000-0000-000000000002",
+    "name": "Home Box",
+    "model": "purple",
+    "mode": "router",
+    "online": false,
+    "version": "1.977",
+    "publicIP": "198.51.100.42",
+    "location": "US",
+    "lastSeen": 1714780800,
+    "deviceCount": 12,
+    "ruleCount": 5,
+    "alarmCount": 0
+  }
+]
