@@ -35,10 +35,10 @@ func RemoteCategory(cats ...string) Expr  { return orEqValues("remote.category",
 func RemoteDomain(domains ...string) Expr { return orEqValues("remote.domain", domains) }
 func RemoteRegion(regions ...string) Expr { return orEqValues("remote.region", regions) }
 
-func TransferTotalGT(v string) Expr     { return GT("transfer.total", v) }
-func TransferTotalGTE(v string) Expr    { return GTE("transfer.total", v) }
-func TransferDownloadGT(v string) Expr  { return GT("transfer.download", v) }
-func TransferUploadGT(v string) Expr    { return GT("transfer.upload", v) }
+func TransferTotalGT(v string) Expr    { return GT("transfer.total", v) }
+func TransferTotalGTE(v string) Expr   { return GTE("transfer.total", v) }
+func TransferDownloadGT(v string) Expr { return GT("transfer.download", v) }
+func TransferUploadGT(v string) Expr   { return GT("transfer.upload", v) }
 
 func TSAfter(t time.Time) Expr  { return GT("ts", t.Unix()) }
 func TSBefore(t time.Time) Expr { return LT("ts", t.Unix()) }
