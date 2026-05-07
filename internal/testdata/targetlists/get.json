@@ -1,0 +1,9 @@
+{
+  "id": "TL-00000000-0000-0000-0000-000000000001",
+  "owner": "global",
+  "name": "Block Ads",
+  "category": "ad",
+  "targets": ["doubleclick.net", "ads.example.com"],
+  "notes": "Common ad domains",
+  "lastUpdated": 1714867200
+}
