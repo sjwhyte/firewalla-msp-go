@@ -1,8 +1,12 @@
 package firewalla
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -103,6 +107,79 @@ func NewClient(domain, token string, opts ...Option) (*Client, error) {
 	c.Stats = &StatsService{client: c}
 	c.Trends = &TrendsService{client: c}
 	return c, nil
+}
+
+// do executes an HTTP request against the MSP API.
+//
+// path is appended to baseURL (must start with "/").
+// query, body, and out are all optional. If body is non-nil it is JSON-encoded.
+// On non-2xx, returns *APIError. On 2xx with out != nil, decodes JSON into out.
+func (c *Client) do(ctx context.Context, method, path string, query url.Values, body any, out any) error {
+	u := *c.baseURL
+	u.Path += path
+	if query != nil {
+		u.RawQuery = query.Encode()
+	}
+
+	var bodyReader io.Reader
+	if body != nil {
+		buf, err := json.Marshal(body)
+		if err != nil {
+			return fmt.Errorf("firewalla: marshal request body: %w", err)
+		}
+		bodyReader = bytes.NewReader(buf)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), bodyReader)
+	if err != nil {
+		return fmt.Errorf("firewalla: build request: %w", err)
+	}
+	req.Header.Set("Authorization", "Token "+c.token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.userAgent)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		raw, _ := io.ReadAll(resp.Body)
+		ae := &APIError{
+			HTTPStatus: resp.StatusCode,
+			Body:       raw,
+			Method:     method,
+			URL:        u.Path,
+			RequestID:  resp.Header.Get("X-Request-Id"),
+		}
+		var generic struct {
+			Message string `json:"message"`
+			Code    string `json:"code"`
+			Error   string `json:"error"`
+		}
+		if json.Unmarshal(raw, &generic) == nil {
+			ae.Code = generic.Code
+			ae.Message = generic.Message
+			if ae.Message == "" {
+				ae.Message = generic.Error
+			}
+		}
+		return ae
+	}
+
+	if out != nil {
+		if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+			return fmt.Errorf("firewalla: decode response: %w", err)
+		}
+	}
+	return nil
 }
 
 // Service placeholders. Methods and fields are added in their own files.
