@@ -1,0 +1,7 @@
+{
+  "count": 5,
+  "results": [
+    {"aid":"5","gid":"G","type":1,"ts":1714867600,"status":"active"}
+  ],
+  "next_cursor": ""
+}

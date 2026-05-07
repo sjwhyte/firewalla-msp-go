@@ -1,0 +1,8 @@
+{
+  "count": 5,
+  "results": [
+    {"aid":"3","gid":"G","type":1,"ts":1714867400,"status":"active"},
+    {"aid":"4","gid":"G","type":1,"ts":1714867500,"status":"active"}
+  ],
+  "next_cursor": "c3"
+}

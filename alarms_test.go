@@ -113,3 +113,64 @@ func TestAlarmsService_Delete_RequiresIDs(t *testing.T) {
 		t.Error("expected error for empty aid")
 	}
 }
+
+func TestAlarmsService_All_WalksAllPages(t *testing.T) {
+	c, mux, teardown := newTestServer(t)
+	defer teardown()
+	mux.HandleFunc("/v2/alarms", func(w http.ResponseWriter, r *http.Request) {
+		cursor := r.URL.Query().Get("cursor")
+		var path string
+		switch cursor {
+		case "":
+			path = "internal/testdata/alarms/list_page1.json"
+		case "c2":
+			path = "internal/testdata/alarms/list_page2.json"
+		case "c3":
+			path = "internal/testdata/alarms/list_page3.json"
+		default:
+			t.Fatalf("unexpected cursor %q", cursor)
+		}
+		w.WriteHeader(200)
+		body, _ := os.ReadFile(path)
+		_, _ = w.Write(body)
+	})
+
+	var ids []string
+	for a, err := range c.Alarms.All(context.Background(), nil) {
+		if err != nil {
+			t.Fatalf("All: %v", err)
+		}
+		ids = append(ids, a.AID)
+	}
+	want := []string{"1", "2", "3", "4", "5"}
+	if len(ids) != len(want) {
+		t.Fatalf("ids = %v, want %v", ids, want)
+	}
+	for i, id := range ids {
+		if id != want[i] {
+			t.Errorf("ids[%d] = %s, want %s", i, id, want[i])
+		}
+	}
+}
+
+func TestAlarmsService_All_IgnoresOptsCursor(t *testing.T) {
+	c, mux, teardown := newTestServer(t)
+	defer teardown()
+	first := true
+	mux.HandleFunc("/v2/alarms", func(w http.ResponseWriter, r *http.Request) {
+		if first {
+			if got := r.URL.Query().Get("cursor"); got != "" {
+				t.Errorf("first call cursor = %q, want empty (opts.Cursor must be ignored)", got)
+			}
+			first = false
+		}
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte(`{"count":0,"results":[],"next_cursor":""}`))
+	})
+
+	for _, err := range c.Alarms.All(context.Background(), &AlarmListOptions{Cursor: "should-be-ignored"}) {
+		if err != nil {
+			t.Fatalf("All: %v", err)
+		}
+	}
+}

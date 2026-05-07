@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"net/url"
 	"strconv"
 )
@@ -134,6 +135,17 @@ func (s *AlarmsService) List(ctx context.Context, opts *AlarmListOptions) (*Page
 		return nil, err
 	}
 	return &out, nil
+}
+
+func (s *AlarmsService) All(ctx context.Context, opts *AlarmListOptions) iter.Seq2[Alarm, error] {
+	return paginate(ctx, func(cursor string) (*Page[Alarm], error) {
+		o := AlarmListOptions{}
+		if opts != nil {
+			o = *opts
+		}
+		o.Cursor = cursor
+		return s.List(ctx, &o)
+	})
 }
 
 func (s *AlarmsService) Get(ctx context.Context, gid, aid string) (*Alarm, error) {
