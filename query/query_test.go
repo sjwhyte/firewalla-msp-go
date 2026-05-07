@@ -1,6 +1,9 @@
 package query
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestEq(t *testing.T) {
 	if got := Eq("status", "active").String(); got != "status:active" {
@@ -79,5 +82,57 @@ func TestEmptyExprIgnored(t *testing.T) {
 	got := And(Eq("a", "1"), Eq("", "")).String()
 	if got != "a:1" {
 		t.Errorf("And with empty = %q", got)
+	}
+}
+
+func TestAlarmHelpers(t *testing.T) {
+	if got := AlarmStatus(AlarmActive).String(); got != "status:active" {
+		t.Errorf("AlarmStatus = %q", got)
+	}
+	if got := AlarmStatus(AlarmArchived).String(); got != "status:archived" {
+		t.Errorf("AlarmStatus archived = %q", got)
+	}
+	if got := AlarmTypeIs(1, 5).String(); got != "type:1,5" {
+		t.Errorf("AlarmTypeIs = %q", got)
+	}
+	if got := BoxName("Gold Plus", "Purple").String(); got != `box.name:"Gold Plus",Purple` {
+		t.Errorf("BoxName = %q", got)
+	}
+	if got := DeviceNameLike("iphone").String(); got != "device.name:*iphone*" {
+		t.Errorf("DeviceNameLike = %q", got)
+	}
+	if got := TransferTotalGT("50MB").String(); got != "transfer.total:>50MB" {
+		t.Errorf("TransferTotalGT = %q", got)
+	}
+	t0 := time.Unix(1714867200, 0).UTC()
+	if got := TSAfter(t0).String(); got != "ts:>1714867200" {
+		t.Errorf("TSAfter = %q", got)
+	}
+}
+
+func TestFlowHelpers(t *testing.T) {
+	if got := Direction(DirectionInbound).String(); got != "direction:inbound" {
+		t.Errorf("Direction = %q", got)
+	}
+	if got := Category("social", "video").String(); got != "category:social,video" {
+		t.Errorf("Category = %q", got)
+	}
+	if got := DPort(443).String(); got != "dport:443" {
+		t.Errorf("DPort = %q", got)
+	}
+	if got := TotalGT("100MB").String(); got != "total:>100MB" {
+		t.Errorf("TotalGT = %q", got)
+	}
+}
+
+func TestRuleHelpers(t *testing.T) {
+	if got := RuleStatus("active").String(); got != "status:active" {
+		t.Errorf("RuleStatus = %q", got)
+	}
+	if got := RuleAction("block").String(); got != "action:block" {
+		t.Errorf("RuleAction = %q", got)
+	}
+	if got := BoxID("G1").String(); got != "box.id:G1" {
+		t.Errorf("BoxID = %q", got)
 	}
 }
