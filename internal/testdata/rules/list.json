@@ -1,0 +1,18 @@
+{
+  "count": 1,
+  "results": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "action": "block",
+      "direction": "bidirection",
+      "gid": "G1",
+      "target": {"type": "domain", "value": "example.com", "dnsOnly": true},
+      "scope": {"type": "device", "value": "mac:AA:BB:CC:DD:EE:FF"},
+      "status": "active",
+      "notes": "Block example.com",
+      "createdAt": 1714000000,
+      "updatedAt": 1714867200
+    }
+  ],
+  "next_cursor": ""
+}
