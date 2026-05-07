@@ -1,0 +1,613 @@
+{
+  "info": {
+    "_postman_id": "f17ewa11-msp0-4api-c011-ect10n000001",
+    "name": "Firewalla MSP API (v2)",
+    "description": "Complete Postman collection for the Firewalla MSP API v2.\n\n**Base URL:** `https://{{msp_domain}}/v2`\n\n**Authentication:** All requests use a Personal Access Token via the `Authorization: Token <your_token>` header. Generate a token in the MSP UI under *Account Settings → Create New Token*.\n\n## Setup\n1. Edit the collection variables and set `msp_domain` to your MSP host (e.g. `mydomain.firewalla.net`) and `token` to your personal access token.\n2. Optionally fill in `gid`, `aid`, `device_id`, `rule_id`, `target_list_id`, `box_group_id` to make the example requests runnable as-is.\n\n## Search Syntax (used in `query` params on alarms / flows / rules)\nSpace-separated terms are AND-ed. Each term is `qualifier:value` (or `-qualifier:value` to exclude). Values can be comma-separated for OR, can use `*` for wildcards, and numeric qualifiers support `>`, `>=`, `<`, `<=`, and ranges (`a-b`). Strings with spaces, commas, colons, or asterisks must be quoted: `box.name:\"Gold Plus\"`. Data units: `B`, `KB`, `MB`, `GB`, `TB`.\n\nExample: `box.name:\"Gold Plus\",Purple device.name:*iphone* transfer.total:>50MB ts:>1695196894`\n\n## Pagination\nList endpoints (alarms, flows, rules) return `{count, results, next_cursor}`. Pass the opaque `next_cursor` value back in the `cursor` query param to fetch the next page. Default `limit` is 200, max 500.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "Authorization", "type": "string" },
+      { "key": "value", "value": "Token {{token}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Warn if required variables are missing",
+          "const required = ['msp_domain', 'token'];",
+          "required.forEach(v => {",
+          "  if (!pm.variables.get(v) || pm.variables.get(v).startsWith('your_')) {",
+          "    console.warn(`[Firewalla] Variable '${v}' is not set. Edit the collection variables before sending requests.`);",
+          "  }",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generic response sanity checks",
+          "pm.test('Status code is 2xx', function () {",
+          "  pm.expect(pm.response.code).to.be.within(200, 299);",
+          "});",
+          "",
+          "if (pm.response.code === 401) {",
+          "  console.error('[Firewalla] 401 Unauthorized — check the {{token}} variable.');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "msp_domain",
+      "value": "dn-ja3rrk.firewalla.net",
+      "type": "string",
+      "description": "Your MSP domain, e.g. mydomain.firewalla.net (no protocol, no trailing slash)"
+    },
+    {
+      "key": "token",
+      "value": "your_personal_access_token",
+      "type": "string",
+      "description": "Personal Access Token from MSP → Account Settings → Create New Token"
+    },
+    {
+      "key": "gid",
+      "value": "00000000-0000-0000-0000-000000000000",
+      "type": "string",
+      "description": "Box GID (UUID identifying a Firewalla box)"
+    },
+    {
+      "key": "aid",
+      "value": "1",
+      "type": "string",
+      "description": "Alarm ID"
+    },
+    {
+      "key": "device_id",
+      "value": "AA:BB:CC:DD:EE:FF",
+      "type": "string",
+      "description": "Device ID — usually a MAC address; may be prefixed (mac:, ovpn:, wg_peer:)"
+    },
+    {
+      "key": "rule_id",
+      "value": "00000000-0000-0000-0000-000000000001",
+      "type": "string",
+      "description": "Rule ID"
+    },
+    {
+      "key": "target_list_id",
+      "value": "TL-00000000-0000-0000-0000-000000000000",
+      "type": "string",
+      "description": "Target List ID"
+    },
+    {
+      "key": "box_group_id",
+      "value": "1",
+      "type": "string",
+      "description": "MSP box group ID"
+    }
+  ],
+  "item": [
+    {
+      "name": "Boxes",
+      "description": "A Firewalla box represents a physical Firewalla device.",
+      "item": [
+        {
+          "name": "List boxes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/boxes",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "boxes"]
+            },
+            "description": "Get a list of all Firewalla boxes registered to this MSP. Returns model, mode, online status, version, public IP, location, lastSeen, and counts (devices, rules, alarms)."
+          }
+        },
+        {
+          "name": "List boxes in a group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/boxes?group={{box_group_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "boxes"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "description": "MSP box group ID" }
+              ]
+            },
+            "description": "Filter boxes belonging to a specific MSP box group."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Devices",
+      "description": "A device is the basic unit of monitoring, alarms, and traffic filtering. Each device is a physical device, network interface, or VPN client.",
+      "item": [
+        {
+          "name": "List devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/devices",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "devices"]
+            },
+            "description": "Get all devices across the MSP. Each entry includes id, gid, name, ip, ipReserved, macVendor, online status, lastSeen, network, group, and 24h totalDownload/totalUpload."
+          }
+        },
+        {
+          "name": "List devices on a box",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/devices?box={{gid}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "devices"],
+              "query": [
+                { "key": "box", "value": "{{gid}}", "description": "Box GID to filter by" }
+              ]
+            },
+            "description": "Get devices on a specific Firewalla box."
+          }
+        },
+        {
+          "name": "List devices in a box group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/devices?group={{box_group_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "devices"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "description": "Box group ID to filter by" }
+              ]
+            },
+            "description": "Get devices belonging to all boxes in an MSP box group."
+          }
+        },
+        {
+          "name": "Update device",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Updated Device\"\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/boxes/{{gid}}/devices/{{device_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "boxes", "{{gid}}", "devices", "{{device_id}}"]
+            },
+            "description": "Update mutable fields on a device (e.g. `name`). Available on MSP 2.9+."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alarms",
+      "description": "Alarms are notifications about activity (security, abnormal upload, new devices, open ports, VPN events, etc.). All alarms are auto-deleted after 30 days.",
+      "item": [
+        {
+          "name": "List alarms (search)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/alarms?query=status:active&sortBy=ts:desc&limit=200",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "alarms"],
+              "query": [
+                { "key": "query", "value": "status:active", "description": "Search expression. See Search Syntax in the collection description." },
+                { "key": "groupBy", "value": "", "description": "Comma-separated fields to group by", "disabled": true },
+                { "key": "sortBy", "value": "ts:desc", "description": "Sort field and order. Default ts:desc." },
+                { "key": "limit", "value": "200", "description": "Page size. Default 200, max 500." },
+                { "key": "cursor", "value": "", "description": "Opaque next_cursor from a previous response", "disabled": true }
+              ]
+            },
+            "description": "Search alarms with the standard Firewalla query syntax.\n\n**Common qualifiers:**\n- `ts` — timestamp (numeric, supports ranges)\n- `type` / `AlarmType` — 1..16 (Security Activity, Abnormal Upload, Large Bandwidth, Monthly Data Plan, New Device, Device Back Online, Device Offline, Video, Gaming, Porn, VPN Activity, VPN Restored, VPN Error, Open Port, Internet Connectivity, Large Upload)\n- `status` — `active` or `archived`\n- `box.id`, `box.name`, `box.group.id`\n- `device.id` (e.g. `\"mac:AA:BB:CC:DD:EE:FF\"`), `device.name`, `device.network.name`\n- `remote.category`, `remote.domain`, `remote.region`\n- `transfer.download`, `transfer.upload`, `transfer.total` (with units: B/KB/MB/GB/TB)"
+          }
+        },
+        {
+          "name": "Get an alarm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/alarms/{{gid}}/{{aid}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "alarms", "{{gid}}", "{{aid}}"]
+            },
+            "description": "Fetch full details of a single alarm by box `gid` and alarm `aid`."
+          }
+        },
+        {
+          "name": "Delete an alarm",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/alarms/{{gid}}/{{aid}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "alarms", "{{gid}}", "{{aid}}"]
+            },
+            "description": "Permanently delete an alarm."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Flows",
+      "description": "Network and local traffic flows captured by the Firewalla. Supports the same rich query syntax as alarms.",
+      "item": [
+        {
+          "name": "List flows (search)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/flows?query=&sortBy=ts:desc&limit=200",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "flows"],
+              "query": [
+                { "key": "query", "value": "", "description": "Search expression. Examples: `box.id:{{gid}}`, `category:social total:>10MB`, `device.name:iphone region:CN`, `direction:inbound -status:ok`." },
+                { "key": "groupBy", "value": "", "description": "Comma-separated grouping (e.g. `domain,box`)", "disabled": true },
+                { "key": "sortBy", "value": "ts:desc", "description": "Default ts:desc. Other useful: `total:desc`, `download:desc`, `upload:desc`." },
+                { "key": "limit", "value": "200", "description": "Page size. Default 200, max 500." },
+                { "key": "cursor", "value": "", "description": "Opaque next_cursor for pagination", "disabled": true }
+              ]
+            },
+            "description": "Search flows.\n\n**Common qualifiers:**\n- `ts` — timestamp (numeric/ranges)\n- `status` — flow status (e.g. `ok`)\n- `direction` — `inbound`, `outbound`, `local`\n- `box.id`, `box.name`, `box.group.id`\n- `device.id`, `device.name`\n- `network.id`, `network.name`\n- `category` — `ad`, `edu`, `games`, `gamble`, `intel`, `p2p`, `porn`, `private`, `social`, `shopping`, `video`, `vpn`\n- `domain`, `region` (ISO 3166 country code)\n- `sport` (source port), `dport` (destination port)\n- `download`, `upload`, `total` (with units)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rules",
+      "description": "Rules manage access control on the network — blocking, allowing, or time-limiting traffic for specific targets and devices.",
+      "item": [
+        {
+          "name": "List rules (search)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/rules?query=box.id:{{gid}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "rules"],
+              "query": [
+                { "key": "query", "value": "box.id:{{gid}}", "description": "Search expression. Qualifiers: `status`, `action`, `box.id`, `box.group.id`, `device.id`." }
+              ]
+            },
+            "description": "List firewall rules matching a query. Returns `{count, results}` with each rule's id, action, direction, target, scope, status, schedule, notes, and timestamps."
+          }
+        },
+        {
+          "name": "Create rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"block\",\n  \"direction\": \"bidirection\",\n  \"gid\": \"{{gid}}\",\n  \"notes\": \"Block example.com\",\n  \"target\": {\n    \"type\": \"domain\",\n    \"value\": \"example.com\",\n    \"dnsOnly\": true\n  },\n  \"scope\": {\n    \"type\": \"device\",\n    \"value\": \"{{device_id}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/rules",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "rules"]
+            },
+            "description": "Create a new rule. Currently only `block` and `allow` actions are supported via the API.\n\n**Body fields:**\n- `action` (required): `block` | `allow`\n- `direction`: `bidirection` | `inbound` | `outbound` (default `bidirection`)\n- `gid`: Box GID this rule applies to (omit or set group for cross-box)\n- `target`: `{ type, value, dnsOnly? }` where type is `domain`, `ip`, `category`, `internet`, `network`, `targetList`, etc.\n- `scope` (optional): `{ type, value }` — limits the rule to a specific device, network, group, etc.\n- `protocol`: `tcp` | `udp`\n- `notes`: free text\n- `schedule`: optional schedule object"
+          }
+        },
+        {
+          "name": "Pause rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"duration\": 60,\n  \"box\": \"{{gid}}\"\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/rules/{{rule_id}}/pause",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "rules", "{{rule_id}}", "pause"]
+            },
+            "description": "Temporarily pause an active rule. Optional body lets you specify a duration in minutes (default 60, range 1–1440)."
+          }
+        },
+        {
+          "name": "Resume rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"box\": \"{{gid}}\"\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/rules/{{rule_id}}/resume",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "rules", "{{rule_id}}", "resume"]
+            },
+            "description": "Resume a previously paused rule and restore it to active state."
+          }
+        },
+        {
+          "name": "Delete rule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/rules/{{rule_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "rules", "{{rule_id}}"]
+            },
+            "description": "Delete a rule by its ID."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Target Lists",
+      "description": "A target list is a reusable collection of domains or IPs used as a building block for rules. Owned by either the MSP (`global`) or a single box.",
+      "item": [
+        {
+          "name": "List target lists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/target-lists",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "target-lists"]
+            },
+            "description": "Returns all target lists managed by the MSP — both global lists and lists owned by individual boxes under management."
+          }
+        },
+        {
+          "name": "Get a target list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/target-lists/{{target_list_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "target-lists", "{{target_list_id}}"]
+            },
+            "description": "Get full details (including the targets array) of a specific target list."
+          }
+        },
+        {
+          "name": "Create target list",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A Simple Target List\",\n  \"targets\": [\n    \"foo.com\",\n    \"bar.net\"\n  ],\n  \"category\": \"edu\",\n  \"notes\": \"This is a simple target list\"\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/target-lists",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "target-lists"]
+            },
+            "description": "Create a new target list. `name` is required (max 24 chars). `targets` is an array of domains, IPs, or CIDR ranges. `category` is one of: `ad`, `edu`, `games`, `gamble`, `intel`, `p2p`, `porn`, `private`, `social`, `shopping`, `video`, `vpn`. To make it box-scoped instead of global, include `\"owner\": \"<box_gid>\"`."
+          }
+        },
+        {
+          "name": "Update target list",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Target List\",\n  \"targets\": [\n    \"foo.com\",\n    \"baz.io\"\n  ],\n  \"notes\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/target-lists/{{target_list_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "target-lists", "{{target_list_id}}"]
+            },
+            "description": "Update a target list. `id`, `owner`, and `lastUpdated` are immutable; everything else can be changed."
+          }
+        },
+        {
+          "name": "Delete target list",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/target-lists/{{target_list_id}}",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "target-lists", "{{target_list_id}}"]
+            },
+            "description": "Delete a target list by ID. Will fail if any active rules still reference it."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "description": "Statistical aggregates rendered as ordered tables, plus a simple counts endpoint.",
+      "item": [
+        {
+          "name": "Top boxes by blocked flows",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/stats/topBoxesByBlockedFlows?limit=5",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "stats", "topBoxesByBlockedFlows"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "description": "Optional MSP box group ID to scope results", "disabled": true },
+                { "key": "limit", "value": "5", "description": "Default 5" }
+              ]
+            },
+            "description": "Returns boxes ranked by blocked flow count. Each entry has `meta` (gid, name, model) and a numeric `value`."
+          }
+        },
+        {
+          "name": "Top boxes by security alarms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/stats/topBoxesBySecurityAlarms?limit=5",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "stats", "topBoxesBySecurityAlarms"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "disabled": true },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Returns boxes ranked by security alarm count."
+          }
+        },
+        {
+          "name": "Top regions by blocked flows",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/stats/topRegionsByBlockedFlows?limit=5",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "stats", "topRegionsByBlockedFlows"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "disabled": true },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Returns ISO country regions ranked by blocked flow count. `meta` is `{ code: <ISO2> }`."
+          }
+        },
+        {
+          "name": "Simple statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/stats/simple",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "stats", "simple"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "description": "Optional MSP box group ID", "disabled": true }
+              ]
+            },
+            "description": "Returns aggregate counts: `onlineBoxes`, `offlineBoxes`, `alarms`, `rules`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trends",
+      "description": "Daily time-series counts. Each response is a JSON array of `{ ts, value }` objects.",
+      "item": [
+        {
+          "name": "Flows trend (blocked / day)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/trends/flows",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "trends", "flows"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "description": "Optional MSP box group ID", "disabled": true }
+              ]
+            },
+            "description": "Number of blocked flows captured each day."
+          }
+        },
+        {
+          "name": "Alarms trend",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/trends/alarms",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "trends", "alarms"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "disabled": true }
+              ]
+            },
+            "description": "Number of alarms generated each day."
+          }
+        },
+        {
+          "name": "Rules trend",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://{{msp_domain}}/v2/trends/rules",
+              "protocol": "https",
+              "host": ["{{msp_domain}}"],
+              "path": ["v2", "trends", "rules"],
+              "query": [
+                { "key": "group", "value": "{{box_group_id}}", "disabled": true }
+              ]
+            },
+            "description": "Number of rules created each day."
+          }
+        }
+      ]
+    }
+  ]
+}
