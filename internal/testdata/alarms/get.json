@@ -1,0 +1,11 @@
+{
+  "aid": "1",
+  "gid": "00000000-0000-0000-0000-000000000001",
+  "type": 1,
+  "ts": 1714867200,
+  "status": "active",
+  "message": "Suspicious connection",
+  "device": {"id": "mac:AA:BB:CC:DD:EE:FF", "name": "iPhone"},
+  "remote": {"domain": "evil.example", "region": "RU", "category": "intel"},
+  "transfer": {"download": 1024, "upload": 256, "total": 1280}
+}
