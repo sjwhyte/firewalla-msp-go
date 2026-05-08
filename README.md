@@ -123,6 +123,14 @@ Retries: network errors, 429, 502, 503, 504. Honors `Retry-After`. Skips retry i
 
 `Boxes`, `Devices`, `Alarms`, `Flows`, `Rules`, `TargetLists`, `Stats`, `Trends` — every endpoint in the MSP v2 Postman collection.
 
+## Development
+
+Common workflows are wrapped in [go-task](https://taskfile.dev). Install with `brew install go-task` (macOS) or see https://taskfile.dev/installation/.
+
+- `task` — run unit tests
+- `task ci` — run the full CI pipeline locally (fmt check, vet, race tests, staticcheck)
+- `task --list` — see all available tasks
+
 ## License
 
 MIT
