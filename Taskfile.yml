@@ -1,0 +1,58 @@
+version: '3'
+
+silent: true
+
+tasks:
+  default:
+    desc: "Run unit tests (alias for 'test')"
+    cmds:
+      - task: test
+
+  test:
+    desc: "Run unit tests"
+    cmds:
+      - go test ./...
+
+  test:race:
+    desc: "Run unit tests with -race"
+    cmds:
+      - go test -race ./...
+
+  fmt:
+    desc: "Format Go source files in place"
+    cmds:
+      - gofmt -w .
+
+  fmt:check:
+    desc: "Fail if any Go file is not gofmt'd"
+    cmds:
+      - |
+        out=$(gofmt -l .)
+        if [ -n "$out" ]; then
+          echo "gofmt diffs:"
+          echo "$out"
+          exit 1
+        fi
+
+  vet:
+    desc: "Run go vet across all packages"
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: "Run staticcheck via 'go run' (no global install required)"
+    cmds:
+      - go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+
+  tidy:
+    desc: "Run go mod tidy"
+    cmds:
+      - go mod tidy
+
+  ci:
+    desc: "Run the full CI pipeline locally (fmt:check, vet, test:race, lint)"
+    cmds:
+      - task: fmt:check
+      - task: vet
+      - task: test:race
+      - task: lint
