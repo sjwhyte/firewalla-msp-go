@@ -14,3 +14,7 @@ coverage.txt
 
 # OS
 .DS_Store
+
+# docs
+docs/
+.claude/
