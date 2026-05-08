@@ -14,20 +14,9 @@ jobs:
         with:
           go-version: "1.26"
           cache: true
-      - name: gofmt
-        run: |
-          out=$(gofmt -l .)
-          if [ -n "$out" ]; then
-            echo "gofmt diffs:"
-            echo "$out"
-            exit 1
-          fi
-      - name: go vet
-        run: go vet ./...
-      - name: go test
-        run: go test -race ./...
-      - name: staticcheck
-        uses: dominikh/staticcheck-action@v1
+      - uses: arduino/setup-task@v2
         with:
-          version: latest
-          install-go: false
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: task ci
+        run: task ci
