@@ -49,6 +49,23 @@ tasks:
     cmds:
       - go mod tidy
 
+  release:check:
+    desc: "Verify GIT_TAG env var matches the Version constant in client.go (e.g. GIT_TAG=v0.1.0 task release:check)"
+    cmds:
+      - |
+        tag="${GIT_TAG:-}"
+        if [ -z "$tag" ]; then
+          echo "GIT_TAG env var is required (e.g. GIT_TAG=v0.1.0 task release:check)"
+          exit 1
+        fi
+        expected="${tag#v}"
+        actual=$(grep -E '^const Version' client.go | sed -E 's/.*"([^"]+)".*/\1/')
+        if [ "$expected" != "$actual" ]; then
+          echo "Tag $tag implies Version=$expected, but client.go has Version=\"$actual\""
+          exit 1
+        fi
+        echo "OK: tag $tag matches Version=\"$actual\""
+
   ci:
     desc: "Run the full CI pipeline locally (fmt:check, vet, test:race, lint)"
     cmds:
