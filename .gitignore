@@ -16,5 +16,5 @@ coverage.txt
 .DS_Store
 
 # docs
-docs/
+docs/*
 .claude/
