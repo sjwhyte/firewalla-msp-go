@@ -131,6 +131,15 @@ Common workflows are wrapped in [go-task](https://taskfile.dev). Install with `b
 - `task ci` — run the full CI pipeline locally (fmt check, vet, race tests, staticcheck)
 - `task --list` — see all available tasks
 
+## Releases
+
+1. Bump `const Version` in `client.go`.
+2. Commit. Run `task ci`.
+3. Tag: `git tag vX.Y.Z`. Verify locally: `GIT_TAG=vX.Y.Z task release:check`.
+4. Push: `git push origin main vX.Y.Z`.
+
+The release workflow validates the tag, re-runs CI, and creates a GitHub Release with auto-generated notes.
+
 ## License
 
 MIT
