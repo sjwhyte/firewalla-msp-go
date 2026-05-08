@@ -15,6 +15,5 @@ coverage.txt
 # OS
 .DS_Store
 
-# docs
-docs/*
+# Claude Code session/config
 .claude/
