@@ -15,7 +15,7 @@ type Box struct {
 	Version     string    `json:"version"`
 	PublicIP    string    `json:"publicIP"`
 	Location    string    `json:"location"`
-	LastSeen    int64     `json:"lastSeen"`
+	LastSeen    Timestamp `json:"lastSeen"`
 	DeviceCount int       `json:"deviceCount"`
 	RuleCount   int       `json:"ruleCount"`
 	AlarmCount  int       `json:"alarmCount"`

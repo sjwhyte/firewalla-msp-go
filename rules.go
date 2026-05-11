@@ -20,8 +20,8 @@ type Rule struct {
 	Schedule  json.RawMessage `json:"schedule,omitempty"`
 	Notes     string          `json:"notes,omitempty"`
 	Protocol  string          `json:"protocol,omitempty"`
-	CreatedAt int64           `json:"createdAt,omitempty"`
-	UpdatedAt int64           `json:"updatedAt,omitempty"`
+	CreatedAt Timestamp       `json:"createdAt,omitempty"`
+	UpdatedAt Timestamp       `json:"updatedAt,omitempty"`
 }
 
 type RuleTarget struct {

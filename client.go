@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "0.2.1"
+const Version = "0.3.0"
 
 type Client struct {
 	domain     string

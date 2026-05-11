@@ -3,6 +3,7 @@ package firewalla
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
@@ -132,30 +133,59 @@ func (t AlarmType) String() string {
 
 // Alarm represents one alarm record.
 type Alarm struct {
-	AID      AlarmID        `json:"aid"`
-	GID      string         `json:"gid"`
-	Type     AlarmType      `json:"type"`
-	TS       int64          `json:"ts"`
-	Status   AlarmStatus    `json:"status"`
-	Message  string         `json:"message,omitempty"`
-	Device   *AlarmDevice   `json:"device,omitempty"`
-	Remote   *AlarmRemote   `json:"remote,omitempty"`
-	Transfer *AlarmTransfer `json:"transfer,omitempty"`
+	AID         AlarmID         `json:"aid"`
+	GID         string          `json:"gid"`
+	Type        AlarmType       `json:"type"`
+	TypeName    string          `json:"_type,omitempty"`
+	TS          Timestamp       `json:"ts"`
+	ActiveTS    Timestamp       `json:"activeTs,omitempty"`
+	Status      AlarmStatus     `json:"status"`
+	CloudAction string          `json:"cloudaction,omitempty"`
+	Direction   string          `json:"direction,omitempty"`
+	Count       int             `json:"count,omitempty"`
+	Message     string          `json:"message,omitempty"`
+	Device      *AlarmDevice    `json:"device,omitempty"`
+	Remote      *AlarmRemote    `json:"remote,omitempty"`
+	Transfer    *AlarmTransfer  `json:"transfer,omitempty"`
+	Analytics   json.RawMessage `json:"analytics,omitempty"`
 }
 
 type AlarmDevice struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         string         `json:"id"`
+	Name       string         `json:"name"`
+	IP         string         `json:"ip,omitempty"`
+	MACVendor  string         `json:"macVendor,omitempty"`
+	Port       []int          `json:"port,omitempty"`
+	Network    *NetworkRef    `json:"network,omitempty"`
+	DeviceType string         `json:"deviceType,omitempty"`
+	PortInfo   *AlarmPortInfo `json:"portInfo,omitempty"`
 }
+
 type AlarmRemote struct {
-	Domain   string `json:"domain"`
-	Region   string `json:"region"`
-	Category string `json:"category"`
+	Domain     string         `json:"domain,omitempty"`
+	IP         string         `json:"ip,omitempty"`
+	Region     string         `json:"region,omitempty"`
+	Category   string         `json:"category,omitempty"`
+	Latitude   float64        `json:"latitude,omitempty"`
+	Longitude  float64        `json:"longitude,omitempty"`
+	Port       []int          `json:"port,omitempty"`
+	RootDomain string         `json:"rootDomain,omitempty"`
+	PortInfo   *AlarmPortInfo `json:"portInfo,omitempty"`
 }
+
 type AlarmTransfer struct {
-	Download int64 `json:"download"`
-	Upload   int64 `json:"upload"`
-	Total    int64 `json:"total"`
+	Download int64   `json:"download"`
+	Upload   int64   `json:"upload"`
+	Total    int64   `json:"total"`
+	Duration float64 `json:"duration,omitempty"`
+}
+
+// AlarmPortInfo describes a port used by a device or remote endpoint in an alarm.
+type AlarmPortInfo struct {
+	Protocol    string `json:"protocol,omitempty"`
+	Port        int    `json:"port,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 type AlarmListOptions struct {

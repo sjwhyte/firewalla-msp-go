@@ -155,8 +155,20 @@ func TestAlarmsService_Get(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if a.AID != "1" {
+	if a.AID != "2408" {
 		t.Errorf("AID = %s", a.AID)
+	}
+	if a.TypeName != "ALARM_LARGE_UPLOAD" {
+		t.Errorf("TypeName = %s", a.TypeName)
+	}
+	if a.TS.IsZero() {
+		t.Errorf("TS should be set")
+	}
+	if a.Transfer == nil || a.Transfer.Duration == 0 {
+		t.Errorf("Transfer.Duration should be set: %+v", a.Transfer)
+	}
+	if a.Remote == nil || a.Remote.RootDomain != "amazonaws.com" {
+		t.Errorf("Remote.RootDomain wrong: %+v", a.Remote)
 	}
 }
 

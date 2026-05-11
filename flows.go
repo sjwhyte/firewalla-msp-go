@@ -8,7 +8,7 @@ import (
 )
 
 type Flow struct {
-	TS        int64        `json:"ts"`
+	TS        Timestamp    `json:"ts"`
 	Status    string       `json:"status"`
 	Direction string       `json:"direction"`
 	Box       *FlowBoxRef  `json:"box,omitempty"`

@@ -1,11 +1,40 @@
 {
-  "aid": 1,
-  "gid": "00000000-0000-0000-0000-000000000001",
-  "type": 1,
-  "ts": 1714867200,
+  "gid": "a05c15cb-95a0-48b1-8dc9-15b9e06cc971",
+  "aid": 2408,
   "status": 1,
-  "message": "Suspicious connection",
-  "device": {"id": "mac:AA:BB:CC:DD:EE:FF", "name": "iPhone"},
-  "remote": {"domain": "evil.example", "region": "RU", "category": "intel"},
-  "transfer": {"download": 1024, "upload": 256, "total": 1280}
+  "ts": 1778413842.883,
+  "type": 2,
+  "count": 1,
+  "_type": "ALARM_LARGE_UPLOAD",
+  "activeTs": 1778413664.12,
+  "cloudaction": "active",
+  "device": {
+    "id": "00:08:22:FC:BB:FB",
+    "ip": "192.168.4.123",
+    "macVendor": "InPro Comm",
+    "name": "InPro Comm",
+    "port": [38850, 38846],
+    "network": {"id": "a84d54ee-9ca3-4b5c-a142-224254456b3d", "name": "LAN 1"},
+    "deviceType": "desktop",
+    "portInfo": {"protocol": "tcp", "port": 38850}
+  },
+  "remote": {
+    "domain": "ifit-mobile.s3.us-east-1.amazonaws.com",
+    "ip": "16.15.183.142",
+    "latitude": 39.0437,
+    "longitude": -77.4875,
+    "port": [443],
+    "region": "US",
+    "rootDomain": "amazonaws.com",
+    "portInfo": {"protocol": "tcp", "port": 443, "name": "https", "description": "http protocol over TLS/SSL"}
+  },
+  "transfer": {
+    "upload": 16961533,
+    "download": 61950,
+    "total": 17023483,
+    "duration": 12.619999885559082
+  },
+  "direction": "outbound",
+  "message": "Device InPro Comm uploaded 16.96 MB data to ifit-mobile.s3.us-east-1.amazonaws.com at about 05:47 AM.",
+  "analytics": {"matched": [], "statistics": null, "note": "test"}
 }

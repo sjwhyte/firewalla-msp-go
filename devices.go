@@ -15,7 +15,7 @@ type Device struct {
 	IPReserved    bool         `json:"ipReserved"`
 	MACVendor     string       `json:"macVendor"`
 	Online        bool         `json:"online"`
-	LastSeen      int64        `json:"lastSeen"`
+	LastSeen      Timestamp    `json:"lastSeen"`
 	Network       *NetworkRef  `json:"network,omitempty"`
 	Group         *DeviceGroup `json:"group,omitempty"`
 	TotalDownload int64        `json:"totalDownload"`

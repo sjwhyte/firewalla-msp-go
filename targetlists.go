@@ -8,13 +8,13 @@ import (
 
 // TargetList is a reusable collection of domains/IPs used in rules.
 type TargetList struct {
-	ID          string   `json:"id"`
-	Owner       string   `json:"owner"`
-	Name        string   `json:"name"`
-	Category    string   `json:"category,omitempty"`
-	Targets     []string `json:"targets"`
-	Notes       string   `json:"notes,omitempty"`
-	LastUpdated int64    `json:"lastUpdated,omitempty"`
+	ID          string    `json:"id"`
+	Owner       string    `json:"owner"`
+	Name        string    `json:"name"`
+	Category    string    `json:"category,omitempty"`
+	Targets     []string  `json:"targets"`
+	Notes       string    `json:"notes,omitempty"`
+	LastUpdated Timestamp `json:"lastUpdated,omitempty"`
 }
 
 type TargetListCreate struct {

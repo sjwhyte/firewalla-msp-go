@@ -1,7 +1,7 @@
 {
   "count": 5,
   "results": [
-    {"aid":5,"gid":"G","type":1,"ts":1714867600,"status":1}
+    {"aid":5,"gid":"G","type":1,"ts":1714867600.999,"status":1}
   ],
   "next_cursor": ""
 }
