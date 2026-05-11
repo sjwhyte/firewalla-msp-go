@@ -55,6 +55,29 @@ func TestAlarm_DecodesNumericAndStringAID(t *testing.T) {
 	}
 }
 
+func TestAlarm_DecodesNumericAndStringStatus(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  string
+		want AlarmStatus
+	}{
+		{"numeric status", `{"aid":1,"gid":"G","type":1,"ts":1,"status":1}`, "1"},
+		{"string status active", `{"aid":1,"gid":"G","type":1,"ts":1,"status":"active"}`, "active"},
+		{"string status archived", `{"aid":1,"gid":"G","type":1,"ts":1,"status":"archived"}`, "archived"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var a Alarm
+			if err := json.Unmarshal([]byte(c.raw), &a); err != nil {
+				t.Fatalf("Unmarshal: %v", err)
+			}
+			if a.Status != c.want {
+				t.Errorf("Status = %q, want %q", a.Status, c.want)
+			}
+		})
+	}
+}
+
 func TestAlarmType_String(t *testing.T) {
 	cases := []struct {
 		t    AlarmType

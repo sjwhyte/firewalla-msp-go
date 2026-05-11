@@ -10,22 +10,34 @@ import (
 	"strconv"
 )
 
+// unmarshalFlexibleString decodes either a JSON string (returned as-is) or a
+// JSON number / other non-null token (returned as the trimmed raw bytes) into
+// *s. Used by the MSP types whose fields the API may return as either form.
+func unmarshalFlexibleString(s *string, data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		*s = ""
+		return nil
+	}
+	if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
+		*s = string(data[1 : len(data)-1])
+		return nil
+	}
+	*s = string(data)
+	return nil
+}
+
 // AlarmID identifies an alarm. The MSP API returns this as a JSON number;
 // AlarmID accepts both numeric and string forms when decoding so the type is
 // resilient to either server-side representation.
 type AlarmID string
 
 func (a *AlarmID) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
-	if string(data) == "null" {
-		*a = ""
-		return nil
+	var s string
+	if err := unmarshalFlexibleString(&s, data); err != nil {
+		return err
 	}
-	if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
-		*a = AlarmID(data[1 : len(data)-1])
-		return nil
-	}
-	*a = AlarmID(data)
+	*a = AlarmID(s)
 	return nil
 }
 
@@ -35,6 +47,27 @@ func (a AlarmID) MarshalJSON() ([]byte, error) {
 
 // String returns the alarm ID as a plain string (e.g. for URL paths or logging).
 func (a AlarmID) String() string { return string(a) }
+
+// AlarmStatus is the status of an alarm. The MSP API may return this as a
+// JSON number (e.g. an internal status code) or a JSON string (e.g. "active",
+// "archived"); AlarmStatus accepts both forms.
+type AlarmStatus string
+
+func (a *AlarmStatus) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := unmarshalFlexibleString(&s, data); err != nil {
+		return err
+	}
+	*a = AlarmStatus(s)
+	return nil
+}
+
+func (a AlarmStatus) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + string(a) + `"`), nil
+}
+
+// String returns the alarm status as a plain string.
+func (a AlarmStatus) String() string { return string(a) }
 
 // AlarmType is the documented enum 1..16.
 type AlarmType int
@@ -103,7 +136,7 @@ type Alarm struct {
 	GID      string         `json:"gid"`
 	Type     AlarmType      `json:"type"`
 	TS       int64          `json:"ts"`
-	Status   string         `json:"status"`
+	Status   AlarmStatus    `json:"status"`
 	Message  string         `json:"message,omitempty"`
 	Device   *AlarmDevice   `json:"device,omitempty"`
 	Remote   *AlarmRemote   `json:"remote,omitempty"`
