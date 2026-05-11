@@ -1,8 +1,13 @@
 package firewalla
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 // Box represents a Firewalla box registered to the MSP.
@@ -22,9 +27,48 @@ type Box struct {
 	Group       *BoxGroup `json:"group,omitempty"`
 }
 
+// BoxGroup identifies an MSP box group. The MSP API returns this as either a
+// JSON string (treated as the group id) or a JSON object with {id, name}.
 type BoxGroup struct {
-	ID   any    `json:"id"`
-	Name string `json:"name"`
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+func (g *BoxGroup) UnmarshalJSON(data []byte) error {
+	return unmarshalIDName(data, &g.ID, &g.Name)
+}
+
+// unmarshalIDName decodes either a JSON string (stored in id) or a JSON object
+// with {id, name} fields into the given pointers. Shared by BoxGroup and
+// DeviceGroup; the MSP API has been observed to return either form.
+func unmarshalIDName(data []byte, id, name *string) error {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if data[0] == '"' {
+		return json.Unmarshal(data, id)
+	}
+	var obj struct {
+		ID   any    `json:"id"`
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	*name = obj.Name
+	switch v := obj.ID.(type) {
+	case string:
+		*id = v
+	case float64:
+		s := strconv.FormatFloat(v, 'f', -1, 64)
+		*id = strings.TrimSuffix(s, ".0")
+	case nil:
+		// leave id empty
+	default:
+		*id = fmt.Sprintf("%v", v)
+	}
+	return nil
 }
 
 type BoxListOptions struct {

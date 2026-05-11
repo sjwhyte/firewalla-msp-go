@@ -8,6 +8,29 @@ import (
 	"testing"
 )
 
+func TestDeviceGroup_AcceptsStringOrObject(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  string
+		want DeviceGroup
+	}{
+		{"string", `"Media"`, DeviceGroup{ID: "Media"}},
+		{"object", `{"id":1,"name":"Media"}`, DeviceGroup{ID: "1", Name: "Media"}},
+		{"null", `null`, DeviceGroup{}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var g DeviceGroup
+			if err := json.Unmarshal([]byte(c.raw), &g); err != nil {
+				t.Fatalf("Unmarshal: %v", err)
+			}
+			if g != c.want {
+				t.Errorf("got %+v, want %+v", g, c.want)
+			}
+		})
+	}
+}
+
 func TestDevicesService_List(t *testing.T) {
 	c, mux, teardown := newTestServer(t)
 	defer teardown()

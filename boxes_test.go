@@ -2,10 +2,46 @@ package firewalla
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"testing"
 )
+
+func TestBoxGroup_AcceptsStringOrObject(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  string
+		want BoxGroup
+	}{
+		{"string", `"HQ"`, BoxGroup{ID: "HQ"}},
+		{"object", `{"id":1,"name":"HQ"}`, BoxGroup{ID: "1", Name: "HQ"}},
+		{"object string id", `{"id":"abc","name":"HQ"}`, BoxGroup{ID: "abc", Name: "HQ"}},
+		{"null", `null`, BoxGroup{}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var g BoxGroup
+			if err := json.Unmarshal([]byte(c.raw), &g); err != nil {
+				t.Fatalf("Unmarshal: %v", err)
+			}
+			if g != c.want {
+				t.Errorf("got %+v, want %+v", g, c.want)
+			}
+		})
+	}
+}
+
+func TestBox_DecodesStringGroup(t *testing.T) {
+	raw := []byte(`{"gid":"G","name":"Office","model":"gold-plus","online":true,"group":"HQ"}`)
+	var b Box
+	if err := json.Unmarshal(raw, &b); err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+	if b.Group == nil || b.Group.ID != "HQ" {
+		t.Errorf("Group = %+v, want id=HQ", b.Group)
+	}
+}
 
 func TestBoxesService_List_All(t *testing.T) {
 	c, mux, teardown := newTestServer(t)

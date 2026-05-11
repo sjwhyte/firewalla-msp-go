@@ -27,9 +27,16 @@ type NetworkRef struct {
 	Name string `json:"name"`
 }
 
+// DeviceGroup identifies a device group. The MSP API has been observed to
+// return this as either a JSON string (the group id) or a JSON object with
+// {id, name}; DeviceGroup.UnmarshalJSON handles both.
 type DeviceGroup struct {
-	ID   any    `json:"id"`
-	Name string `json:"name"`
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+
+func (g *DeviceGroup) UnmarshalJSON(data []byte) error {
+	return unmarshalIDName(data, &g.ID, &g.Name)
 }
 
 type DeviceListOptions struct {
