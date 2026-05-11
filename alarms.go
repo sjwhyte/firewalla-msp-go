@@ -1,6 +1,7 @@
 package firewalla
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,6 +9,32 @@ import (
 	"net/url"
 	"strconv"
 )
+
+// AlarmID identifies an alarm. The MSP API returns this as a JSON number;
+// AlarmID accepts both numeric and string forms when decoding so the type is
+// resilient to either server-side representation.
+type AlarmID string
+
+func (a *AlarmID) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if string(data) == "null" {
+		*a = ""
+		return nil
+	}
+	if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
+		*a = AlarmID(data[1 : len(data)-1])
+		return nil
+	}
+	*a = AlarmID(data)
+	return nil
+}
+
+func (a AlarmID) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + string(a) + `"`), nil
+}
+
+// String returns the alarm ID as a plain string (e.g. for URL paths or logging).
+func (a AlarmID) String() string { return string(a) }
 
 // AlarmType is the documented enum 1..16.
 type AlarmType int
@@ -72,7 +99,7 @@ func (t AlarmType) String() string {
 
 // Alarm represents one alarm record.
 type Alarm struct {
-	AID      string         `json:"aid"`
+	AID      AlarmID        `json:"aid"`
 	GID      string         `json:"gid"`
 	Type     AlarmType      `json:"type"`
 	TS       int64          `json:"ts"`
@@ -148,22 +175,22 @@ func (s *AlarmsService) All(ctx context.Context, opts *AlarmListOptions) iter.Se
 	})
 }
 
-func (s *AlarmsService) Get(ctx context.Context, gid, aid string) (*Alarm, error) {
+func (s *AlarmsService) Get(ctx context.Context, gid string, aid AlarmID) (*Alarm, error) {
 	if gid == "" || aid == "" {
 		return nil, errors.New("firewalla: gid and aid are required")
 	}
 	var out Alarm
-	path := "/alarms/" + url.PathEscape(gid) + "/" + url.PathEscape(aid)
+	path := "/alarms/" + url.PathEscape(gid) + "/" + url.PathEscape(string(aid))
 	if err := s.client.do(ctx, "GET", path, nil, nil, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
 }
 
-func (s *AlarmsService) Delete(ctx context.Context, gid, aid string) error {
+func (s *AlarmsService) Delete(ctx context.Context, gid string, aid AlarmID) error {
 	if gid == "" || aid == "" {
 		return errors.New("firewalla: gid and aid are required")
 	}
-	path := "/alarms/" + url.PathEscape(gid) + "/" + url.PathEscape(aid)
+	path := "/alarms/" + url.PathEscape(gid) + "/" + url.PathEscape(string(aid))
 	return s.client.do(ctx, "DELETE", path, nil, nil, nil)
 }

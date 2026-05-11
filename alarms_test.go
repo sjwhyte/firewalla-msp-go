@@ -2,10 +2,58 @@ package firewalla
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"testing"
 )
+
+func TestAlarmID_UnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  string
+		want AlarmID
+	}{
+		{"numeric", `1`, "1"},
+		{"numeric large", `1234567890`, "1234567890"},
+		{"string", `"1"`, "1"},
+		{"string alphanumeric", `"a1b2"`, "a1b2"},
+		{"null", `null`, ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var got AlarmID
+			if err := got.UnmarshalJSON([]byte(c.raw)); err != nil {
+				t.Fatalf("UnmarshalJSON: %v", err)
+			}
+			if got != c.want {
+				t.Errorf("got %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
+func TestAlarm_DecodesNumericAndStringAID(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  string
+		want AlarmID
+	}{
+		{"numeric aid", `{"aid":42,"gid":"G","type":1,"ts":1,"status":"active"}`, "42"},
+		{"string aid", `{"aid":"42","gid":"G","type":1,"ts":1,"status":"active"}`, "42"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var a Alarm
+			if err := json.Unmarshal([]byte(c.raw), &a); err != nil {
+				t.Fatalf("Unmarshal: %v", err)
+			}
+			if a.AID != c.want {
+				t.Errorf("AID = %q, want %q", a.AID, c.want)
+			}
+		})
+	}
+}
 
 func TestAlarmType_String(t *testing.T) {
 	cases := []struct {
@@ -140,7 +188,7 @@ func TestAlarmsService_All_WalksAllPages(t *testing.T) {
 		if err != nil {
 			t.Fatalf("All: %v", err)
 		}
-		ids = append(ids, a.AID)
+		ids = append(ids, string(a.AID))
 	}
 	want := []string{"1", "2", "3", "4", "5"}
 	if len(ids) != len(want) {
