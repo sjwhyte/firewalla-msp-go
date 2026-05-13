@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/github/sjwhyte/firewalla-msp-go/graph/badge.svg)](https://codecov.io/github/sjwhyte/firewalla-msp-go)
 [![Go Reference](https://pkg.go.dev/badge/github.com/sjwhyte/firewalla-msp-go.svg)](https://pkg.go.dev/github.com/sjwhyte/firewalla-msp-go)
 
-Idiomatic Go client for the [Firewalla MSP API v2](https://docs.firewalla.net).
+Go client for the [Firewalla MSP API v2](https://docs.firewalla.net).
 
 ## Install
 
