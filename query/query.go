@@ -54,6 +54,8 @@ func Like(qualifier, glob string) Expr {
 
 // escapeWildcardValue quotes the body of a wildcard expression while keeping
 // leading/trailing `*` outside the quotes so they retain their glob semantics.
+// Within the quoted body, backslashes and quotes are escaped so user input
+// cannot break out of the quoted region.
 func escapeWildcardValue(v string) string {
 	prefix, suffix := "", ""
 	body := v
@@ -65,10 +67,16 @@ func escapeWildcardValue(v string) string {
 		suffix = "*"
 		body = body[:len(body)-1]
 	}
-	if strings.ContainsAny(body, " ,:") {
-		body = `"` + strings.ReplaceAll(body, `"`, `\"`) + `"`
+	if needsBodyQuoting(body) {
+		s := strings.ReplaceAll(body, `\`, `\\`)
+		s = strings.ReplaceAll(s, `"`, `\"`)
+		body = `"` + s + `"`
 	}
 	return prefix + body + suffix
+}
+
+func needsBodyQuoting(v string) bool {
+	return strings.ContainsAny(v, " ,:\"\\")
 }
 
 // Not negates an expression by prefixing "-".
@@ -148,11 +156,15 @@ func cmpExpr[T cmp.Ordered](qualifier, op string, v T) Expr {
 
 func itoa(i int) string { return strconv.Itoa(i) }
 
-// escapeValue wraps the value in quotes if it contains space/comma/colon/asterisk,
-// and escapes embedded quotes. The empty string becomes "".
+// escapeValue wraps the value in quotes if it contains any character with
+// special meaning in the Firewalla query syntax (space, comma, colon, asterisk,
+// double quote, or backslash), and escapes embedded backslashes and quotes.
+// The empty string becomes "".
 func escapeValue(v string) string {
 	if needsQuoting(v) {
-		return `"` + strings.ReplaceAll(v, `"`, `\"`) + `"`
+		s := strings.ReplaceAll(v, `\`, `\\`)
+		s = strings.ReplaceAll(s, `"`, `\"`)
+		return `"` + s + `"`
 	}
 	return v
 }
@@ -161,5 +173,5 @@ func needsQuoting(v string) bool {
 	if v == "" {
 		return true
 	}
-	return strings.ContainsAny(v, " ,:*")
+	return strings.ContainsAny(v, " ,:*\"\\")
 }

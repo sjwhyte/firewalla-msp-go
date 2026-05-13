@@ -18,6 +18,13 @@ func TestEq_QuotesSpecialChars(t *testing.T) {
 		{"a:b", `box.name:"a:b"`},
 		{`he said "hi"`, `box.name:"he said \"hi\""`},
 		{"", `box.name:""`},
+		// Backslashes and bare quotes must be quoted+escaped so caller-supplied
+		// input cannot break out of the quoted region.
+		{`bad"value`, `box.name:"bad\"value"`},
+		{`a\b`, `box.name:"a\\b"`},
+		{`a\"b`, `box.name:"a\\\"b"`},
+		{`\`, `box.name:"\\"`},
+		{`"`, `box.name:"\""`},
 	}
 	for _, c := range cases {
 		got := Eq("box.name", c.value).String()

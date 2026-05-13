@@ -239,6 +239,44 @@ func TestDo_ContextCancellation(t *testing.T) {
 	}
 }
 
+func TestDo_RespectsMaxResponseBodySize(t *testing.T) {
+	c, mux, teardown := newTestServer(t)
+	defer teardown()
+	// Override the default 32 MiB cap with a tiny one for the test.
+	c2, err := NewClient("ignored.example.com", "test-token",
+		WithBaseURL(c.baseURL.String()),
+		WithMaxResponseBodyBytes(64),
+	)
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+
+	mux.HandleFunc("/v2/big", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		// Write 128 bytes (well over the 64-byte cap).
+		_, _ = io.WriteString(w, strings.Repeat("a", 128))
+	})
+
+	err = c2.do(context.Background(), "GET", "/big", nil, nil, nil)
+	if err == nil {
+		t.Fatalf("expected error for oversize response")
+	}
+	if !strings.Contains(err.Error(), "exceeds") {
+		t.Errorf("error %q does not mention size limit", err.Error())
+	}
+}
+
+func TestWithMaxResponseBodyBytes_Validation(t *testing.T) {
+	_, err := NewClient("dom.firewalla.net", "tok", WithMaxResponseBodyBytes(0))
+	if err == nil {
+		t.Error("expected error for zero limit")
+	}
+	_, err = NewClient("dom.firewalla.net", "tok", WithMaxResponseBodyBytes(-1))
+	if err == nil {
+		t.Error("expected error for negative limit")
+	}
+}
+
 func TestDo_RedactsTokenInErrorURL(t *testing.T) {
 	c, mux, teardown := newTestServer(t)
 	defer teardown()

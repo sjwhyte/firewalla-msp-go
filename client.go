@@ -13,14 +13,20 @@ import (
 	"time"
 )
 
-const Version = "0.3.1"
+const Version = "0.3.2"
+
+// DefaultMaxResponseBodyBytes is the default maximum response body size
+// (in bytes) the client will read. Responses larger than this fail with
+// an error rather than consuming unbounded memory.
+const DefaultMaxResponseBodyBytes int64 = 32 * 1024 * 1024 // 32 MiB
 
 type Client struct {
-	domain     string
-	token      string
-	baseURL    *url.URL
-	httpClient *http.Client
-	userAgent  string
+	domain               string
+	token                string
+	baseURL              *url.URL
+	httpClient           *http.Client
+	userAgent            string
+	maxResponseBodyBytes int64
 
 	Boxes       *BoxesService
 	Devices     *DevicesService
@@ -65,6 +71,19 @@ func WithUserAgent(ua string) Option {
 	}
 }
 
+// WithMaxResponseBodyBytes caps how many bytes the client will read from any
+// MSP response. Responses larger than n bytes fail with an error rather than
+// consuming unbounded memory. Default is DefaultMaxResponseBodyBytes (32 MiB).
+func WithMaxResponseBodyBytes(n int64) Option {
+	return func(c *Client) error {
+		if n <= 0 {
+			return errors.New("firewalla: WithMaxResponseBodyBytes: must be positive")
+		}
+		c.maxResponseBodyBytes = n
+		return nil
+	}
+}
+
 func NewClient(domain, token string, opts ...Option) (*Client, error) {
 	if domain == "" {
 		return nil, errors.New("firewalla: domain is required")
@@ -85,11 +104,12 @@ func NewClient(domain, token string, opts ...Option) (*Client, error) {
 	}
 
 	c := &Client{
-		domain:     domain,
-		token:      token,
-		baseURL:    base,
-		httpClient: &http.Client{Timeout: 30 * time.Second},
-		userAgent:  "firewalla-msp-go/" + Version,
+		domain:               domain,
+		token:                token,
+		baseURL:              base,
+		httpClient:           &http.Client{Timeout: 30 * time.Second},
+		userAgent:            "firewalla-msp-go/" + Version,
+		maxResponseBodyBytes: DefaultMaxResponseBodyBytes,
 	}
 
 	for _, opt := range opts {
@@ -150,8 +170,19 @@ func (c *Client) do(ctx context.Context, method, path string, query url.Values, 
 		_ = resp.Body.Close()
 	}()
 
+	// Bound the response read so a misbehaving or hostile server cannot
+	// exhaust client memory. We read one byte past the limit to detect
+	// overflow rather than silently truncating.
+	limit := c.maxResponseBodyBytes
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
+	if err != nil {
+		return fmt.Errorf("firewalla: read response: %w", err)
+	}
+	if int64(len(raw)) > limit {
+		return fmt.Errorf("firewalla: response body exceeds %d byte limit", limit)
+	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		raw, _ := io.ReadAll(resp.Body)
 		ae := &APIError{
 			HTTPStatus: resp.StatusCode,
 			Body:       raw,
@@ -175,7 +206,7 @@ func (c *Client) do(ctx context.Context, method, path string, query url.Values, 
 	}
 
 	if out != nil {
-		if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		if err := json.Unmarshal(raw, out); err != nil {
 			return fmt.Errorf("firewalla: decode response: %w", err)
 		}
 	}

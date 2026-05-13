@@ -3,6 +3,7 @@ package firewalla
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -104,6 +105,43 @@ func TestPaginate_BreakStopsIteration(t *testing.T) {
 	}
 	if calls != 1 {
 		t.Errorf("calls = %d, want 1 (break should stop fetching)", calls)
+	}
+}
+
+func TestPaginate_DetectsCursorCycle(t *testing.T) {
+	calls := 0
+	fetch := func(cursor string) (*Page[int], error) {
+		calls++
+		// Always return the same cursor "loop" after the first page.
+		return &Page[int]{Results: []int{calls}, NextCursor: "loop"}, nil
+	}
+
+	var got []int
+	var seenErr error
+	for v, err := range paginate(context.Background(), fetch) {
+		if err != nil {
+			seenErr = err
+			break
+		}
+		got = append(got, v)
+		// Defensive cap so a real loop bug here can't hang the test forever.
+		if calls > 100 {
+			t.Fatalf("paginator did not detect cycle after %d calls", calls)
+		}
+	}
+	if seenErr == nil {
+		t.Fatal("expected cycle error")
+	}
+	if !strings.Contains(seenErr.Error(), "cycle") {
+		t.Errorf("error %q does not mention cycle", seenErr.Error())
+	}
+	// We should have made exactly 2 fetches: the first established "loop",
+	// the second detected the repeat.
+	if calls != 2 {
+		t.Errorf("calls = %d, want 2", calls)
+	}
+	if len(got) != 2 {
+		t.Errorf("got = %v, want 2 items before cycle", got)
 	}
 }
 

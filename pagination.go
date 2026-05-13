@@ -2,6 +2,7 @@ package firewalla
 
 import (
 	"context"
+	"fmt"
 	"iter"
 )
 
@@ -15,10 +16,15 @@ type Page[T any] struct {
 // paginate returns an iter.Seq2[T, error] that walks all pages by repeatedly
 // invoking fetch with the previous page's NextCursor. The iterator yields
 // each item once. On error, it yields a zero T with the error and stops.
+//
+// If the server returns a NextCursor that has been seen before, the iterator
+// yields an error rather than looping forever. This protects against server
+// bugs or hostile peers from inducing an unbounded loop.
 func paginate[T any](ctx context.Context, fetch func(cursor string) (*Page[T], error)) iter.Seq2[T, error] {
 	return func(yield func(T, error) bool) {
 		var zero T
 		cursor := ""
+		seen := map[string]struct{}{}
 		for {
 			if err := ctx.Err(); err != nil {
 				yield(zero, err)
@@ -37,6 +43,11 @@ func paginate[T any](ctx context.Context, fetch func(cursor string) (*Page[T], e
 			if page.NextCursor == "" {
 				return
 			}
+			if _, dup := seen[page.NextCursor]; dup {
+				yield(zero, fmt.Errorf("firewalla: paginator cursor cycle detected (cursor %q seen twice)", page.NextCursor))
+				return
+			}
+			seen[page.NextCursor] = struct{}{}
 			cursor = page.NextCursor
 		}
 	}
