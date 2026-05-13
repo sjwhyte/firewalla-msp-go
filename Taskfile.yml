@@ -42,7 +42,10 @@ tasks:
   build:examples:
     desc: "Compile every example program to catch API drift"
     cmds:
-      - go build ./examples/...
+      # -o /dev/null compiles for type-checking only and discards the binaries
+      # so they don't litter the project root or collide with subpackages
+      # whose directory names match (e.g. examples/query vs query/).
+      - go build -o /dev/null ./examples/...
 
   lint:
     desc: "Run staticcheck via 'go run' (no global install required)"
