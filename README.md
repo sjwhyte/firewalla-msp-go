@@ -123,6 +123,14 @@ Retries: network errors, 429, 502, 503, 504. Honors `Retry-After`. Skips retry i
 
 `Boxes`, `Devices`, `Alarms`, `Flows`, `Rules`, `TargetLists`, `Stats`, `Trends` — every endpoint in the MSP v2 Postman collection.
 
+## Examples
+
+Runnable programs live under [`examples/`](./examples). The catalog covers a read-only tour, both pagination styles, the query builder, retry middleware wiring, error handling, and full create-then-clean-up lifecycles for rules and target lists. See [`examples/README.md`](./examples/README.md) for the full index and run commands.
+
+```bash
+go run ./examples/tour
+```
+
 ## Development
 
 Common workflows are wrapped in [go-task](https://taskfile.dev). Install with `brew install go-task` (macOS) or see https://taskfile.dev/installation/.
