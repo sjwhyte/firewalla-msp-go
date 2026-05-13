@@ -1,6 +1,6 @@
 # firewalla-msp-go
 
-Idiomatic Go client for the [Firewalla MSP API v2](https://help.firewalla.com/hc/en-us/articles/22813088626707).
+Go client for the [Firewalla MSP API v2](https://help.firewalla.com/hc/en-us/articles/22813088626707).
 
 ## Install
 
