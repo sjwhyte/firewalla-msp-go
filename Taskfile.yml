@@ -39,6 +39,11 @@ tasks:
     cmds:
       - go vet ./...
 
+  build:examples:
+    desc: "Compile every example program to catch API drift"
+    cmds:
+      - go build ./examples/...
+
   lint:
     desc: "Run staticcheck via 'go run' (no global install required)"
     cmds:
@@ -67,9 +72,10 @@ tasks:
         echo "OK: tag $tag matches Version=\"$actual\""
 
   ci:
-    desc: "Run the full CI pipeline locally (fmt:check, vet, test:race, lint)"
+    desc: "Run the full CI pipeline locally (fmt:check, vet, build:examples, test:race, lint)"
     cmds:
       - task: fmt:check
       - task: vet
+      - task: build:examples
       - task: test:race
       - task: lint
