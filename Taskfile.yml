@@ -18,6 +18,18 @@ tasks:
     cmds:
       - go test -race ./...
 
+  cover:
+    desc: "Run tests with coverage on the library packages (excludes examples/) and print the total"
+    cmds:
+      - go test -coverprofile=coverage.out $(go list ./... | grep -v /examples/)
+      - go tool cover -func=coverage.out | tail -1
+
+  cover:html:
+    desc: "Generate coverage.out (if missing) and open the HTML report in a browser"
+    cmds:
+      - test -f coverage.out || go test -coverprofile=coverage.out $(go list ./... | grep -v /examples/)
+      - go tool cover -html=coverage.out
+
   fmt:
     desc: "Format Go source files in place"
     cmds:
