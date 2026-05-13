@@ -38,6 +38,43 @@ func TestNewClient_Validation(t *testing.T) {
 	}
 }
 
+func TestNewClient_TrimsWhitespace(t *testing.T) {
+	cases := []struct {
+		name       string
+		domain     string
+		token      string
+		wantDomain string
+		wantToken  string
+	}{
+		{"trailing newline on token", "dom.firewalla.net", "abc\n", "dom.firewalla.net", "abc"},
+		{"leading space on domain", " dom.firewalla.net", "abc", "dom.firewalla.net", "abc"},
+		{"surrounding whitespace on both", "  dom.firewalla.net  ", "\tabc\r\n", "dom.firewalla.net", "abc"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			cl, err := NewClient(c.domain, c.token)
+			if err != nil {
+				t.Fatalf("NewClient: %v", err)
+			}
+			if cl.domain != c.wantDomain {
+				t.Errorf("domain = %q, want %q", cl.domain, c.wantDomain)
+			}
+			if cl.token != c.wantToken {
+				t.Errorf("token = %q, want %q", cl.token, c.wantToken)
+			}
+		})
+	}
+}
+
+func TestNewClient_RejectsWhitespaceOnlyInputs(t *testing.T) {
+	if _, err := NewClient("   ", "abc"); err == nil {
+		t.Error("expected error for whitespace-only domain")
+	}
+	if _, err := NewClient("dom.firewalla.net", " \n\t "); err == nil {
+		t.Error("expected error for whitespace-only token")
+	}
+}
+
 func TestNewClient_Defaults(t *testing.T) {
 	c, err := NewClient("dom.firewalla.net", "tok")
 	if err != nil {

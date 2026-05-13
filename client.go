@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "0.3.2"
+const Version = "0.3.3"
 
 // DefaultMaxResponseBodyBytes is the default maximum response body size
 // (in bytes) the client will read. Responses larger than this fail with
@@ -40,6 +40,16 @@ type Client struct {
 
 type Option func(*Client) error
 
+// WithHTTPClient overrides the underlying *http.Client used for requests.
+// This is the primary extension point for adding retry middleware, custom
+// timeouts, proxies, or alternative transports.
+//
+// Note: when you supply your own http.Client (or its Transport), you take
+// over TLS policy. The library makes no attempt to enforce a minimum TLS
+// version, validate certificates, or override Transport settings on a
+// caller-provided client; the defaults from net/http are used otherwise.
+// Do not pass a Transport with InsecureSkipVerify enabled unless you have
+// a specific reason and understand the implications.
 func WithHTTPClient(h *http.Client) Option {
 	return func(c *Client) error {
 		if h == nil {
@@ -85,6 +95,12 @@ func WithMaxResponseBodyBytes(n int64) Option {
 }
 
 func NewClient(domain, token string, opts ...Option) (*Client, error) {
+	// Trim surrounding whitespace to forgive copy-paste artifacts (a trailing
+	// newline on a token pulled from a shell heredoc, for example). The
+	// emptiness check below catches whitespace-only inputs.
+	domain = strings.TrimSpace(domain)
+	token = strings.TrimSpace(token)
+
 	if domain == "" {
 		return nil, errors.New("firewalla: domain is required")
 	}
