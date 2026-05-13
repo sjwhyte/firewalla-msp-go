@@ -1,6 +1,10 @@
 # firewalla-msp-go
 
-Go client for the [Firewalla MSP API v2](https://docs.firewalla.net).
+[![ci](https://github.com/sjwhyte/firewalla-msp-go/actions/workflows/ci.yml/badge.svg)](https://github.com/sjwhyte/firewalla-msp-go/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/github/sjwhyte/firewalla-msp-go/graph/badge.svg)](https://codecov.io/github/sjwhyte/firewalla-msp-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/sjwhyte/firewalla-msp-go.svg)](https://pkg.go.dev/github.com/sjwhyte/firewalla-msp-go)
+
+Idiomatic Go client for the [Firewalla MSP API v2](https://docs.firewalla.net).
 
 ## Install
 
