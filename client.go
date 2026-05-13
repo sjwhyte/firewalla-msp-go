@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const Version = "0.3.3"
+const Version = "0.4.0"
 
 // DefaultMaxResponseBodyBytes is the default maximum response body size
 // (in bytes) the client will read. Responses larger than this fail with
