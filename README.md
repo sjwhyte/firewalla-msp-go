@@ -1,6 +1,6 @@
 # firewalla-msp-go
 
-Go client for the [Firewalla MSP API v2](https://help.firewalla.com/hc/en-us/articles/22813088626707).
+Go client for the [Firewalla MSP API v2](https://docs.firewalla.net).
 
 ## Install
 
@@ -141,12 +141,15 @@ Common workflows are wrapped in [go-task](https://taskfile.dev). Install with `b
 
 ## Releases
 
-1. Bump `const Version` in `client.go`.
-2. Commit. Run `task ci`.
-3. Tag: `git tag vX.Y.Z`. Verify locally: `GIT_TAG=vX.Y.Z task release:check`.
-4. Push: `git push origin main vX.Y.Z`.
+1. Update `CHANGELOG.md`: move the `Unreleased` section's content under a new `## [vX.Y.Z] - YYYY-MM-DD` heading and add the matching link reference at the bottom.
+2. Bump `const Version` in `client.go`.
+3. Commit. Run `task ci`.
+4. Tag: `git tag vX.Y.Z`. Verify locally: `GIT_TAG=vX.Y.Z task release:check`.
+5. Push: `git push origin main vX.Y.Z`.
 
 The release workflow validates the tag, re-runs CI, and creates a GitHub Release with auto-generated notes.
+
+See [`CHANGELOG.md`](./CHANGELOG.md) for the version history.
 
 ## License
 
