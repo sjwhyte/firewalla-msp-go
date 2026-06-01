@@ -47,7 +47,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("get: %v", err)
 	}
-	fmt.Printf("  name=%s targets=%v\n", got.Name, got.Targets)
+	fmt.Printf("  name=%s targets=%v owner=%s\n", got.Name, got.Targets, got.Owner)
+
+	fmt.Println("list (default — global + Firewalla-managed)...")
+	lists, err := c.TargetLists.List(ctx, nil)
+	if err != nil {
+		log.Fatalf("list: %v", err)
+	}
+	fmt.Printf("  %d list(s)\n", len(lists))
+
+	fmt.Printf("list (owner=%q)...\n", got.Owner)
+	owned, err := c.TargetLists.List(ctx, &firewalla.TargetListListOptions{Owner: got.Owner})
+	if err != nil {
+		log.Fatalf("list owner: %v", err)
+	}
+	fmt.Printf("  %d list(s) owned by %s\n", len(owned), got.Owner)
 
 	fmt.Println("update...")
 	newTargets := []string{"example.invalid", "demo.invalid", "test.invalid"}

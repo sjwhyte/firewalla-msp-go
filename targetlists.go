@@ -32,9 +32,22 @@ type TargetListUpdate struct {
 	Notes    *string   `json:"notes,omitempty"`
 }
 
-func (s *TargetListsService) List(ctx context.Context) ([]TargetList, error) {
+// TargetListListOptions controls filtering on TargetListsService.List.
+//
+// Owner restricts results to lists owned by the given owner. By default the
+// API returns global and Firewalla-managed lists; pass a box gid (or a
+// comma-separated list of gids) to include box-owned lists.
+type TargetListListOptions struct {
+	Owner string
+}
+
+func (s *TargetListsService) List(ctx context.Context, opts *TargetListListOptions) ([]TargetList, error) {
+	q := url.Values{}
+	if opts != nil && opts.Owner != "" {
+		q.Set("owner", opts.Owner)
+	}
 	var out []TargetList
-	if err := s.client.do(ctx, "GET", "/target-lists", nil, nil, &out); err != nil {
+	if err := s.client.do(ctx, "GET", "/target-lists", q, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

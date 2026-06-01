@@ -154,7 +154,7 @@ func main() {
 	}
 
 	section("Target lists")
-	if lists, err := c.TargetLists.List(ctx); err == nil {
+	if lists, err := c.TargetLists.List(ctx, nil); err == nil {
 		for _, tl := range lists {
 			fmt.Printf("  %s  owner=%-40s  %-20s  (%d targets, cat=%s)\n",
 				tl.ID, tl.Owner, tl.Name, len(tl.Targets), tl.Category)

@@ -15,16 +15,35 @@ func TestTargetListsService_List(t *testing.T) {
 		if r.Method != "GET" {
 			t.Errorf("method = %s", r.Method)
 		}
+		if got := r.URL.Query().Get("owner"); got != "" {
+			t.Errorf("owner = %q, want empty", got)
+		}
 		w.WriteHeader(200)
 		body, _ := os.ReadFile("internal/testdata/targetlists/list.json")
 		_, _ = w.Write(body)
 	})
-	got, err := c.TargetLists.List(context.Background())
+	got, err := c.TargetLists.List(context.Background(), nil)
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
 	if len(got) != 1 || got[0].Name != "Block Ads" {
 		t.Errorf("got = %+v", got)
+	}
+}
+
+func TestTargetListsService_List_OwnerFilter(t *testing.T) {
+	c, mux, teardown := newTestServer(t)
+	defer teardown()
+	mux.HandleFunc("/v2/target-lists", func(w http.ResponseWriter, r *http.Request) {
+		if got, want := r.URL.Query().Get("owner"), "box-gid-1"; got != want {
+			t.Errorf("owner = %q, want %q", got, want)
+		}
+		w.WriteHeader(200)
+		body, _ := os.ReadFile("internal/testdata/targetlists/list.json")
+		_, _ = w.Write(body)
+	})
+	if _, err := c.TargetLists.List(context.Background(), &TargetListListOptions{Owner: "box-gid-1"}); err != nil {
+		t.Fatalf("List: %v", err)
 	}
 }
 

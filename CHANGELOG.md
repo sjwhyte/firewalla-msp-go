@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- `TargetListListOptions{Owner}` filter on `TargetLists.List`, matching the documented `owner` query parameter on `GET /v2/target-lists`. Pass a box gid (or comma-separated gids) to include box-owned lists; the API otherwise returns only global and Firewalla-managed lists.
+
+### Changed
+- **Breaking:** `TargetLists.List` signature changed from `List(ctx)` to `List(ctx, opts *TargetListListOptions)`. Existing callers should pass `nil` to preserve current behavior.
+
 ## [v0.4.0] - 2026-05-13
 
 ### Added
