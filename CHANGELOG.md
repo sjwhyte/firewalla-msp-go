@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [v0.5.0] - 2026-06-01
+
 ### Added
 - `TargetListListOptions{Owner}` filter on `TargetLists.List`, matching the documented `owner` query parameter on `GET /v2/target-lists`. Pass a box gid (or comma-separated gids) to include box-owned lists; the API otherwise returns only global and Firewalla-managed lists.
 
@@ -86,7 +88,8 @@ Initial public release.
 - Taskfile and GitHub Actions CI running gofmt, go vet, race tests, and staticcheck.
 - Release workflow that triggers on `v*` tags, validates the tag against `const Version`, re-runs CI, and creates a GitHub Release.
 
-[Unreleased]: https://github.com/sjwhyte/firewalla-msp-go/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/sjwhyte/firewalla-msp-go/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/sjwhyte/firewalla-msp-go/releases/tag/v0.5.0
 [v0.4.0]: https://github.com/sjwhyte/firewalla-msp-go/releases/tag/v0.4.0
 [v0.3.3]: https://github.com/sjwhyte/firewalla-msp-go/releases/tag/v0.3.3
 [v0.3.2]: https://github.com/sjwhyte/firewalla-msp-go/releases/tag/v0.3.2
